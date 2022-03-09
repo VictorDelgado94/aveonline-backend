@@ -1,0 +1,8 @@
+{
+  "userDB": "postgres",
+  "password": "holamundo33",
+  "host": "localhost",
+  "port": "5432",
+  "database": "aveonline",
+  "ssl": false
+}
