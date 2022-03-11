@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/VictorDelgado94/aveonline-backend/models"
@@ -13,7 +14,8 @@ import (
 )
 
 const (
-	layoutDate = "2006-01-02T15:04:05Z"
+	layoutDate     = "2006-01-02T15:04:05Z"
+	layoutDateOnly = "2006-01-02"
 )
 
 type BillingStore interface {
@@ -111,6 +113,7 @@ func (b Billings) Create(ctx context.Context, billingRequest models.BillingCreat
 	}
 
 	billing := b.buildBilling(ctx, promotion, medicines)
+	billing.CreatedAt = billingRequest.CreatedDate
 
 	createdBilling, err := b.Store.CreateBilling(ctx, billing)
 	if err != nil {
@@ -182,4 +185,68 @@ func (b Billings) buildBilling(ctx context.Context, promotion models.Promotion, 
 	billing.Total = total
 
 	return billing
+}
+
+func (b Billings) Simulator(ctx context.Context, date, medicinesIDsParam string) (*models.SimulatorResponse, error) {
+	dateTime, err := time.Parse(layoutDateOnly, date)
+	if err != nil {
+		return nil, models.CustomError{
+			Err:      fmt.Errorf("invalid date received: %w", err),
+			HTTPCode: http.StatusBadRequest,
+			Code:     "0bd363ff-f16a-4566-9a60-edd8bd40d860",
+		}
+	}
+	endDay := dateTime.Add(24 * time.Hour)
+
+	if endDay.Before(time.Now().UTC()) {
+		return nil, models.CustomError{
+			Err:      fmt.Errorf("invalid date received: date must be after current date"),
+			HTTPCode: http.StatusBadRequest,
+			Code:     "efc4df93-748a-44b9-a501-602ecf6eb8d5",
+		}
+	}
+
+	medicinesIDs := strings.Split(medicinesIDsParam, ",")
+	mIDs := make([]int64, 0)
+	for _, id := range medicinesIDs {
+		medicineID, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			return nil, models.CustomError{
+				Err:      fmt.Errorf("invalid medicineID received: %w", err),
+				HTTPCode: http.StatusBadRequest,
+				Code:     "beb548c5-f97d-4953-b850-30fcc5435346",
+			}
+		}
+		mIDs = append(mIDs, medicineID)
+	}
+
+	medicines, err := b.MedicineStore.GetMedicinesByIDs(ctx, mIDs)
+	if err != nil {
+		return nil, models.CustomError{
+			Err:      fmt.Errorf("simulator: getting medicines from the database: %w", err),
+			HTTPCode: http.StatusInternalServerError,
+			Code:     "c1eb357a-efc9-455b-807a-603ac01abb96",
+		}
+	}
+	if len(medicines) != len(medicinesIDs) {
+		return nil, models.CustomError{
+			Err:      fmt.Errorf("simulator: not all medicines could be found, the transaction cannot be processed"),
+			HTTPCode: http.StatusInternalServerError,
+			Code:     "ef8f592b-2c92-47f7-9a7f-875966a3ee07",
+		}
+	}
+
+	promotion, err := b.PromotionStore.GetByDate(ctx, dateTime, endDay)
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
+		return nil, models.CustomError{
+			Err:      fmt.Errorf("simulator: getting promotion for the specific date: %w", err),
+			HTTPCode: http.StatusInternalServerError,
+			Code:     "d65d410c-37a3-4825-8f2c-8795f94ab413",
+		}
+	}
+	billing := b.buildBilling(ctx, promotion, medicines)
+
+	return &models.SimulatorResponse{
+		Total: billing.Total,
+	}, nil
 }

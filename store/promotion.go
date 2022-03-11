@@ -112,12 +112,13 @@ func (ps Promotions) GetPromoByID(ctx context.Context, promoID int64) (models.Pr
 
 func (ps Promotions) CreatePromotion(ctx context.Context, promoRequest models.PromotionCreationRequest) (*models.Promotion, error) {
 	createPromotionSQL := fmt.Sprintf(`
-	INSERT INTO %s (description, percentage, start_date, end_date)
-	VALUES ($1, $2, $3, $4) RETURNING id;
+	INSERT INTO %s (description, percentage, start_date, end_date, created_at, updated_at)
+	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;
 	`, tablePromotions)
 
+	now := time.Now().UTC()
 	var promoID int64
-	err := ps.db.QueryRowContext(ctx, createPromotionSQL, promoRequest.Description, promoRequest.Percentage, promoRequest.StartDate, promoRequest.EndDate).Scan(&promoID)
+	err := ps.db.QueryRowContext(ctx, createPromotionSQL, promoRequest.Description, promoRequest.Percentage, promoRequest.StartDate, promoRequest.EndDate, now, now).Scan(&promoID)
 	if err != nil {
 		return nil, fmt.Errorf("could not create promotion within db: %w", err)
 	}
@@ -149,15 +150,16 @@ func (ps Promotions) CountPromosBetweenDates(ctx context.Context, startDate, end
 	return totalPromos, nil
 }
 
-func (ps Promotions) GetBestPromotionInFuture(ctx context.Context) (models.Promotion, error) {
-	getBestPromoSQL := fmt.Sprintf(`
+func (ps Promotions) GetByDate(ctx context.Context, date, endDay time.Time) (models.Promotion, error) {
+	getPromoByDateSQL := fmt.Sprintf(`
 	SELECT id, description, percentage, start_date, end_date
 	FROM %s
-	WHERE start_date >= $1 AND deleted_at IS NULL
-	ORDER BY percentage desc
+	WHERE start_date BETWEEN $1 AND $2
+	OR end_date BETWEEN $3 AND $4
+	AND deleted_at IS NULL
 	`, tablePromotions)
 
-	row := ps.db.QueryRowContext(ctx, getBestPromoSQL, time.Now().UTC())
+	row := ps.db.QueryRowContext(ctx, getPromoByDateSQL, date, endDay, date, endDay)
 	var (
 		id          int64
 		description sql.NullString

@@ -17,6 +17,7 @@ type PromotionStore interface {
 	GetPromoByID(ctx context.Context, promoID int64) (models.Promotion, error)
 	GetAll(ctx context.Context) ([]models.Promotion, error)
 	CountPromosBetweenDates(ctx context.Context, startDate, endDate time.Time) (int, error)
+	GetByDate(ctx context.Context, date, endDate time.Time) (models.Promotion, error)
 }
 
 type Promotions struct {

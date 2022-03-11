@@ -15,12 +15,16 @@ const (
 
 	startDateQueryParam = "startDate"
 	endDateQueryParam   = "endDate"
+
+	dateQueryParam         = "date"
+	medicinesIDsQueryParam = "medicinesIDs"
 )
 
 type BillingsUsecase interface {
 	Create(ctx context.Context, billlingRequest models.BillingCreationRequest) (*models.BillingDetail, error)
 	Get(ctx context.Context, startDate, endDate string) ([]models.Billing, error)
 	GetByID(ctx context.Context, billingID string) (*models.BillingDetail, error)
+	Simulator(ctx context.Context, date, medicinesIDs string) (*models.SimulatorResponse, error)
 }
 
 type Billings struct {
@@ -78,4 +82,18 @@ func (b Billings) GetByID(e echo.Context) error {
 	}
 
 	return e.JSON(http.StatusOK, billing)
+}
+
+func (b Billings) Simulator(e echo.Context) error {
+	ctx := e.Request().Context()
+
+	date := e.QueryParam(dateQueryParam)
+	medicinesIDs := e.QueryParam(medicinesIDsQueryParam)
+
+	response, err := b.Usecase.Simulator(ctx, date, medicinesIDs)
+	if err != nil {
+		return parseErrorResponse(e, err)
+	}
+
+	return e.JSON(http.StatusOK, response)
 }

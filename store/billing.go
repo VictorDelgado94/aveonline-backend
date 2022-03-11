@@ -195,13 +195,13 @@ func (b Billing) getBillingDetail(ctx context.Context, billingID int64) ([]model
 
 func (b Billing) CreateBilling(ctx context.Context, billing models.BillingDetail) (*models.BillingDetail, error) {
 	createBillingSQL := fmt.Sprintf(`
-	INSERT INTO %s (promotion_id, total)
-	VALUES ($1, $2) RETURNING id;
+	INSERT INTO %s (promotion_id, total, created_at, updated_at)
+	VALUES ($1, $2, $3, $4) RETURNING id;
 	`, tableBilling)
 
 	createBillingDetailSQL := fmt.Sprintf(`
-	INSERT INTO %s (billing_id, medicine_id, medicine_name, medicine_price)
-	VALUES ($1, $2, $3, $4);
+	INSERT INTO %s (billing_id, medicine_id, medicine_name, medicine_price, created_at, updated_at)
+	VALUES ($1, $2, $3, $4, $5, $6);
 	`, tableBillingDetail)
 
 	tx, err := b.db.Begin()
@@ -216,7 +216,8 @@ func (b Billing) CreateBilling(ctx context.Context, billing models.BillingDetail
 		promoID.Int64 = billing.Promotion.ID
 		promoID.Valid = true
 	}
-	err = tx.QueryRowContext(ctx, createBillingSQL, promoID, billing.Total).Scan(&billingID)
+	now := time.Now().UTC()
+	err = tx.QueryRowContext(ctx, createBillingSQL, promoID, billing.Total, billing.CreatedAt, now).Scan(&billingID)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			return nil, fmt.Errorf("createBilling: could not rollback transaction: %w", err)
@@ -225,7 +226,7 @@ func (b Billing) CreateBilling(ctx context.Context, billing models.BillingDetail
 	}
 
 	for _, m := range billing.Medicines {
-		_, err := tx.ExecContext(ctx, createBillingDetailSQL, billingID, m.ID, m.Name, m.Price)
+		_, err := tx.ExecContext(ctx, createBillingDetailSQL, billingID, m.ID, m.Name, m.Price, now, now)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
 				return nil, fmt.Errorf("createBilling: could not rollback transaction: %w", err)

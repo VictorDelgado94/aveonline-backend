@@ -24,8 +24,13 @@ type Billing struct {
 // ----------------------------------------------------------------------------
 
 type BillingCreationRequest struct {
-	PromotionID int64   `json:"promotionID"`
-	Medicines   []int64 `json:"medicines"`
+	PromotionID int64     `json:"promotionID"`
+	Medicines   []int64   `json:"medicines"`
+	CreatedDate time.Time `json:"createdDate"`
+}
+
+type SimulatorResponse struct {
+	Total float64 `json:"total"`
 }
 
 // ----------------------------------------------------------------------------

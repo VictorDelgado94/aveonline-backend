@@ -1,0 +1,284 @@
+{
+	"info": {
+		"_postman_id": "5406cac1-06a6-49a8-9b8c-1dfa45dc818c",
+		"name": "aveonline",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Crear medicamento",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Paracetamol\",\n    \"price\": 25.5\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/medicine",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"medicine"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener Medicamentos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/medicine",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"medicine"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener Medicamento por ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/medicine/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"medicine",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear promocion",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"Promocion fin de abril\",\n    \"percentage\": 30,\n    \"startDate\": \"2022-04-20T00:00:00Z\",\n    \"endDate\": \"2022-04-30T00:00:00Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/promotion",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"promotion"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener promociones",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/promotion",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"promotion"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener promociones por ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/promotion/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"promotion",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear factura",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"promotionID\": 0, \n    \"medicines\": [1,5],\n    \"createdDate\": \"2022-02-20T11:00:00Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/billing",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"billing"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener factura por ID",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"promotionID\": 0, \n    \"medicines\": [1,5]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/billing/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"billing",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener factura por rango de fecha",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"promotionID\": 0, \n    \"medicines\": [1,5]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/billing?startDate=2022-03-08T15:00:00Z&endDate=2022-03-11T16:00:00Z",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"billing"
+					],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2022-03-08T15:00:00Z"
+						},
+						{
+							"key": "endDate",
+							"value": "2022-03-11T16:00:00Z"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Simular factura",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/aveonline/pharmacy/simulator/purchase?date=2022-03-08&medicinesIDs=1,2,3",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"aveonline",
+						"pharmacy",
+						"simulator",
+						"purchase"
+					],
+					"query": [
+						{
+							"key": "date",
+							"value": "2022-03-08"
+						},
+						{
+							"key": "medicinesIDs",
+							"value": "1,2,3"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

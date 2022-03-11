@@ -1,0 +1,427 @@
+openapi: "3.0.3"
+info:
+  title: API Facturacion
+  description: Permite gestionar la facturación de Aveonline.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:{port}/aveonline/pharmacy
+    description: Servidor de desarrollo
+    variables:
+      port:
+        default: "8000"
+
+paths:
+#################################################
+#                   FACTURA                     #
+#################################################
+  /billing:
+    get:
+      tags:
+        - Facturas
+      description: Regresa todas las facturas en un rango de fecha
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Incio del rango de fecha
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Fin del rango de fecha
+      responses:
+        "200":
+          description: Respuesta exitosa, facturas obtenidas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/billing"
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Facturas
+      description: Crea una nueva factura
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/billingCreationRequest"
+      responses:
+        "200":
+          description: Respuesta exitosa, facturas obtenidas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/billingDetail"
+        "400":
+          $ref: '#/components/responses/400'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+  /billing/{billingID}:
+    get:
+      tags:
+        - Facturas
+      description: Regresa el detalle de una factura por un ID especifico
+      parameters:
+        - in: path
+          name: billingID
+          schema:
+            type: string
+          required: true
+          description: id de la factura
+      responses:
+        "200":
+          description: Respuesta exitosa, factura obtenida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/billingDetail"
+        "400":
+          $ref: '#/components/responses/400'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+#################################################
+#                   PROMCION                    #
+#################################################
+  /promotion:
+    get:
+      tags:
+        - Promociones
+      description: Retorna todas las promociones
+      responses:
+        "200":
+          description: Lista de promociones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/promotion"
+        "500":
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Promociones
+      description: Crea nueva promocion
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/promotionCreationRequest"
+      responses:
+        "200":
+          description: Promocion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/promotionCreationResponse"
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  /promotion/{promotionID}:
+    get:
+      tags:
+        - Promociones
+      description: Regresa el detalle de una promocion por un ID especifico
+      parameters:
+        - in: path
+          name: promotionID
+          schema:
+            type: string
+          required: true
+          description: id de la promocion
+      responses:
+        "200":
+          description: Respuesta exitosa, promocion obtenida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/promotion"
+        "400":
+          $ref: '#/components/responses/400'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+
+#################################################
+#                 Medicamento                   #
+#################################################
+  /medicine:
+    get:
+      tags:
+        - Medicamentos
+      description: Retorna todos los medicamentos
+      responses:
+        "200":
+          description: Lista de medicamentos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/medicine"
+        "500":
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Medicamentos
+      description: Crea un nuevo medicamento
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/medicineCreationRequest"
+      responses:
+        "200":
+          description: Medicamento creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/medicineCreationResponse"
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  /medicine/{medicineID}:
+    get:
+      tags:
+        - Medicamentos
+      description: Retorna un medicamento por un ID especifico
+      parameters:
+        - in: path
+          name: medicineID
+          schema:
+            type: string
+          required: true
+          description: id del medicamento
+      responses:
+        "200":
+          description: Detalle del medicamento
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/medicine"
+        "400":
+          $ref: '#/components/responses/400'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+
+#################################################
+#                  Simulador                   #
+#################################################
+  /simulator/purchase:
+    get:
+      tags:
+        - Simulador
+      description: Simular una compra
+      parameters:
+        - in: query
+          name: medicinesIDs
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          required: true
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+          required: true
+          description: Fecha tentativa de compra
+      responses:
+        "200":
+          description: valor simulado de la factura.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                    format: double
+
+components:
+  schemas:
+    billing:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date
+        total:
+          type: number
+          format: double
+    billingDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date
+        total:
+          type: number
+          format: double
+        promotion:
+          $ref: "#/components/schemas/promotion"
+        medicines:
+          type: array
+          items:
+            $ref: "#/components/schemas/medicine"
+    billingCreationRequest:
+      type: object
+      properties:
+        promotionID:
+          type: integer
+          format: int64
+        medicines:
+          type: array
+          items:
+            type: integer
+            format: int64
+        createdAt:
+          type: string
+          format: date
+    medicine:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        location:
+          type: string
+        createdAt:
+          type: string
+          format: date
+    medicineCreationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        location:
+          type: string
+    medicineCreationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+    promotion:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        description:
+          type: string
+        percentage:
+          type: number
+          format: double
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+    promotionCreationRequest:
+      type: object
+      properties:
+        description:
+          type: string
+        percentage:
+          type: number
+          format: double
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+    promotionCreationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+  responses:
+    400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                format: uuid
+              error:
+                type: string
+    404:
+      description: Entity not found
+      content:
+        application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  format: uuid
+                error:
+                  type: string
+    500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                format: uuid
+              error:
+                type: string
+tags:
+  - name: Facturas
+    description: Acciones de facturas
+  - name: Medicamentos
+    description: Acciones de Medicamentos
+  - name: Promociones
+    description: Acciones de Promociones
+  - name: Simulador
+    description: Acciones de Simulador

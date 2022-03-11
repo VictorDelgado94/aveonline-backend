@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/VictorDelgado94/aveonline-backend/models"
 	"github.com/jmoiron/sqlx"
@@ -162,12 +163,13 @@ func (ms Medicine) GetMedicinesByIDs(ctx context.Context, medicineIDs []int64) (
 
 func (ms Medicine) CreateMedicine(ctx context.Context, medicineRequest models.MedicineCreationRequest) (*models.Medicine, error) {
 	createMedicineSQL := fmt.Sprintf(`
-	INSERT INTO %s (name, price, location)
-	VALUES ($1, $2, $3) RETURNING id;
+	INSERT INTO %s (name, price, location, created_at, updated_at)
+	VALUES ($1, $2, $3, $4, $5) RETURNING id;
 	`, tableMedicine)
 
+	now := time.Now().UTC()
 	var medicineID int64
-	err := ms.db.QueryRowContext(ctx, createMedicineSQL, medicineRequest.Name, medicineRequest.Price, medicineRequest.Location).Scan(&medicineID)
+	err := ms.db.QueryRowContext(ctx, createMedicineSQL, medicineRequest.Name, medicineRequest.Price, medicineRequest.Location, now, now).Scan(&medicineID)
 	if err != nil {
 		return nil, fmt.Errorf("could not create medicine record within db: %w", err)
 	}

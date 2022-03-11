@@ -18,12 +18,12 @@ func NewRouter(promotionsT Promotions, medicinesT Medicines, billingsT Billings)
 	e := echo.New()
 	baseURL := e.Group("/aveonline/pharmacy")
 
-	promotions := baseURL.Group("/promotions")
+	promotions := baseURL.Group("/promotion")
 	promotions.GET("", promotionsT.Get)
 	promotions.GET("/:promoID", promotionsT.GetByID)
 	promotions.POST("", promotionsT.Create)
 
-	medicines := baseURL.Group("/medicines")
+	medicines := baseURL.Group("/medicine")
 	medicines.GET("", medicinesT.Get)
 	medicines.GET("/:medicineID", medicinesT.GetByID)
 	medicines.POST("", medicinesT.Create)
@@ -32,6 +32,9 @@ func NewRouter(promotionsT Promotions, medicinesT Medicines, billingsT Billings)
 	billings.GET("", billingsT.Get)
 	billings.GET("/:billingID", billingsT.GetByID)
 	billings.POST("", billingsT.Create)
+
+	simulator := baseURL.Group("/simulator")
+	simulator.GET("/purchase", billingsT.Simulator)
 
 	return e
 }
