@@ -11,6 +11,7 @@ type Medicine struct {
 	Price     float64   `json:"price"`
 	Location  string    `json:"location"`
 	CreatedAt time.Time `json:"createdAt"`
+	// missing quantity field
 }
 
 // ----------------------------------------------------------------------------

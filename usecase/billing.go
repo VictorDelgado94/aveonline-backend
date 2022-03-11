@@ -107,12 +107,22 @@ func (b Billings) Create(ctx context.Context, billingRequest models.BillingCreat
 		}
 	}
 
+	// remove repeated medicines and created a map with quantity
+	uniqueMedicinesIDs, quantityMedicines := uniqueMEdicinesIDsAndSetQuantities(billingRequest.Medicines)
+
 	promotion, medicines, err := b.getEntities(ctx, billingRequest)
 	if err != nil {
 		return nil, err
 	}
+	if len(medicines) != len(uniqueMedicinesIDs) {
+		return nil, models.CustomError{
+			Err:      fmt.Errorf("createBilling: not all medicines could be found, the transaction cannot be processed"),
+			HTTPCode: http.StatusInternalServerError,
+			Code:     "b78e227b-dbd2-4efc-a78e-a5e229488b3a",
+		}
+	}
 
-	billing := b.buildBilling(ctx, promotion, medicines)
+	billing := b.buildBilling(ctx, promotion, medicines, quantityMedicines)
 	billing.CreatedAt = billingRequest.CreatedDate
 
 	createdBilling, err := b.Store.CreateBilling(ctx, billing)
@@ -158,23 +168,16 @@ func (b Billings) getEntities(ctx context.Context, billingReq models.BillingCrea
 			Code:     "6c18183a-b5f5-43a1-95d6-9ae6f80e57e7",
 		}
 	}
-	if len(medicines) != len(billingReq.Medicines) {
-		return promotion, nil, models.CustomError{
-			Err:      fmt.Errorf("createBilling: not all medicines could be found, the transaction cannot be processed"),
-			HTTPCode: http.StatusInternalServerError,
-			Code:     "b78e227b-dbd2-4efc-a78e-a5e229488b3a",
-		}
-	}
 
 	return promotion, medicines, nil
 }
 
-func (b Billings) buildBilling(ctx context.Context, promotion models.Promotion, medicines []models.Medicine) models.BillingDetail {
+func (b Billings) buildBilling(ctx context.Context, promotion models.Promotion, medicines []models.Medicine, quantities map[int64]int) models.BillingDetail {
 	billing := models.BillingDetail{}
 
 	total := 0.0
 	for _, medicine := range medicines {
-		total += medicine.Price
+		total += medicine.Price * float64(quantities[medicine.ID])
 	}
 	if promotion.ID > 0 {
 		total = total - (total * (promotion.Percentage / 100))
@@ -220,6 +223,8 @@ func (b Billings) Simulator(ctx context.Context, date, medicinesIDsParam string)
 		mIDs = append(mIDs, medicineID)
 	}
 
+	uniqueMedicinesIDs, quantityMedicines := uniqueMEdicinesIDsAndSetQuantities(mIDs)
+
 	medicines, err := b.MedicineStore.GetMedicinesByIDs(ctx, mIDs)
 	if err != nil {
 		return nil, models.CustomError{
@@ -228,7 +233,7 @@ func (b Billings) Simulator(ctx context.Context, date, medicinesIDsParam string)
 			Code:     "c1eb357a-efc9-455b-807a-603ac01abb96",
 		}
 	}
-	if len(medicines) != len(medicinesIDs) {
+	if len(medicines) != len(uniqueMedicinesIDs) {
 		return nil, models.CustomError{
 			Err:      fmt.Errorf("simulator: not all medicines could be found, the transaction cannot be processed"),
 			HTTPCode: http.StatusInternalServerError,
@@ -244,9 +249,23 @@ func (b Billings) Simulator(ctx context.Context, date, medicinesIDsParam string)
 			Code:     "d65d410c-37a3-4825-8f2c-8795f94ab413",
 		}
 	}
-	billing := b.buildBilling(ctx, promotion, medicines)
+	billing := b.buildBilling(ctx, promotion, medicines, quantityMedicines)
 
 	return &models.SimulatorResponse{
 		Total: billing.Total,
 	}, nil
+}
+
+func uniqueMEdicinesIDsAndSetQuantities(medicinesIDs []int64) ([]int64, map[int64]int) {
+	// remove repeated medicines and created a map with quantity
+	quantityMedicines := make(map[int64]int, 0)
+	uniqueMedicinesIDs := make([]int64, 0)
+	for _, medicineID := range medicinesIDs {
+		quantityMedicines[medicineID] += 1
+	}
+	for medicineID := range quantityMedicines {
+		uniqueMedicinesIDs = append(uniqueMedicinesIDs, medicineID)
+	}
+
+	return uniqueMedicinesIDs, quantityMedicines
 }
